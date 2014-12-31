@@ -1,7 +1,7 @@
 /*
  * gnote
  *
- * Copyright (C) 2014 Aurimas Cernius
+ * Copyright (C) 2014 Zahari Doychev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
  */
 
 
-#ifndef _ADDINS_NOTE_DIRECTORY_WATCHER_PREFERENCES_
-#define _ADDINS_NOTE_DIRECTORY_WATCHER_PREFERENCES_
+#ifndef _REPO_PREFERENCES_
+#define _REPO_PREFERENCES_
 
 #include <gtkmm/grid.h>
 #include <gtkmm/spinbutton.h>
@@ -27,17 +27,17 @@
 #include "notemanager.hpp"
 
 
-namespace notedirectorywatcher {
+namespace repo {
 
 extern const char *SCHEMA_NOTE_DIRECTORY_WATCHER;
 extern const char *CHECK_INTERVAL;
 
 
-class NoteDirectoryWatcherPreferences
+class RepoPreferences
   : public Gtk::Grid
 {
 public:
-  NoteDirectoryWatcherPreferences(gnote::NoteManager &);
+  RepoPreferences(gnote::NoteManager &);
 private:
   void on_interval_changed();
 

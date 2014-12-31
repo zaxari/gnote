@@ -1,7 +1,7 @@
 /*
  * gnote
  *
- * Copyright (C) 2014 Aurimas Cernius
+ * Copyright (C) 2014 Zahari Doychev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,16 +18,16 @@
  */
 
 
-#ifndef _ADDINS_NOTE_DIRECTORY_WATCHER_PREFERENCES_FACTORY_
-#define _ADDINS_NOTE_DIRECTORY_WATCHER_PREFERENCES_FACTORY_
+#ifndef _REPO_PREFERENCES_FACTORY_
+#define _REPO_PREFERENCES_FACTORY_
 
 #include "addinpreferencefactory.hpp"
-#include "notedirectorywatcherpreferences.hpp"
+#include "repopreferences.hpp"
 
-namespace notedirectorywatcher {
+namespace repo {
 
-class NoteDirectoryWatcherPreferencesFactory
-  : public gnote::AddinPreferenceFactory<NoteDirectoryWatcherPreferences>
+class RepoPreferencesFactory
+  : public gnote::AddinPreferenceFactory<RepoPreferences>
 {};
 
 }

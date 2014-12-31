@@ -26,6 +26,7 @@
 #include "iactionmanager.hpp"
 #include "notewindow.hpp"
 #include "sharp/string.hpp"
+#include "repopreferencesfactory.hpp"
 
 
 #include <boost/format.hpp>
@@ -37,6 +38,7 @@ namespace repo {
 vcsModule::vcsModule()
 {
 	ADD_INTERFACE_IMPL(vcs);
+	ADD_INTERFACE_IMPL(RepoPreferencesFactory);
 }
 
 vcs::vcs()
@@ -65,7 +67,7 @@ int vcs::do_sync()
 
 void vcs::initialize()
 {
-	printf(">>>> %s called\n", __func__);
+	printf(">>>>>> %s called\n", __func__);
 	return;
 }
 
