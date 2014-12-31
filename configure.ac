@@ -111,6 +111,9 @@ else
 ])
 fi
 
+PKG_CHECK_MODULES([libgit2], [libgit2])
+AC_SUBST([libgit2_LIBS])
+AC_SUBST([libgit2_CFLAGS])
 
 AC_LANG_PUSH(C++)
 if test "$GCC" = "yes"; then
@@ -217,6 +220,8 @@ src/addins/underline/Makefile
 src/addins/underline/underline.desktop.in
 src/addins/webdavsyncservice/Makefile
 src/addins/webdavsyncservice/webdavsyncservice.desktop.in
+src/addins/repo/Makefile
+src/addins/repo/repo.desktop.in
 src/dbus/Makefile
 po/Makefile.in
 po/Makefile
