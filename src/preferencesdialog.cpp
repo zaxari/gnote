@@ -700,6 +700,8 @@ namespace gnote {
   // Extension Preferences
   Gtk::Widget *PreferencesDialog::make_addins_pane()
   {
+    
+    printf("%s: called\n", __func__);
     Gtk::Grid *vbox = new Gtk::Grid;
     vbox->set_row_spacing(6);
     vbox->set_border_width(6);

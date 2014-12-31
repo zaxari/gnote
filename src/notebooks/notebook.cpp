@@ -186,6 +186,7 @@ namespace notebooks {
     NoteBase::Ptr note = m_note_manager.create_note_from_template(temp_title, note_template);
 
     // Add the notebook tag
+    printf("%s: adding tag...\n", __func__);
     note->add_tag(m_tag);
 
     return static_pointer_cast<Note>(note);

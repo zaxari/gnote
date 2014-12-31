@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
+#define DEBUG
 
 #include <dlfcn.h>
 

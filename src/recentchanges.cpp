@@ -137,7 +137,16 @@ namespace gnote {
     m_new_note_button->signal_clicked().connect(sigc::mem_fun(m_search_notes_widget, &SearchNotesWidget::new_note));
     m_new_note_button->show_all();
     left_box->attach(*m_new_note_button, 1, 0, 1, 1);
+    /* left_box->show(); */
+
+    m_new_repo_sync_button = manage(new Gtk::Button);
+    m_new_repo_sync_button->set_label(_("Sync"));
+    m_new_repo_sync_button->add_accelerator("activate", get_accel_group(), GDK_KEY_N, Gdk::CONTROL_MASK, (Gtk::AccelFlags) 0);
+    m_new_repo_sync_button->signal_clicked().connect(sigc::mem_fun(m_search_notes_widget, &SearchNotesWidget::new_note));
+    m_new_repo_sync_button->show_all();
+    left_box->attach(*m_new_repo_sync_button, 2, 0, 1, 1);
     left_box->show();
+
 
     m_embedded_toolbar.set_margin_left(6);
     m_embedded_toolbar.set(Gtk::ALIGN_START, Gtk::ALIGN_CENTER, 0, 0);
@@ -285,6 +294,7 @@ namespace gnote {
 
   void NoteRecentChanges::new_note()
   {
+    printf("%s: called\n", __func__);
     std::vector<Gtk::Widget*> current = m_embed_box.get_children();
     SearchNotesWidget *search_wgt = dynamic_cast<SearchNotesWidget*>(current.size() > 0 ? current[0] : NULL);
     if(search_wgt) {

@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define DEBUG
 
 #include <boost/format.hpp>
 #include <glibmm/i18n.h>
@@ -239,6 +240,7 @@ void NoteBase::add_tag(const Tag::Ptr & tag)
 
     signal_tag_added(*this, tag);
 
+    printf("Tag added, queueing save\n");
     DBG_OUT ("Tag added, queueing save");
     queue_save(OTHER_DATA_CHANGED);
   }

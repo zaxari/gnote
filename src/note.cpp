@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#define DEBUG
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -372,7 +372,7 @@ namespace gnote {
     if (!m_save_needed)
       return;
 
-    DBG_OUT("Saving '%s'...", m_data.data().title().c_str());
+    DBG_OUT("Saving '%s' to '%s'...", m_data.data().title().c_str(), file_path().c_str());
 
     try {
       NoteArchiver::write(file_path(), m_data.synchronized_data());

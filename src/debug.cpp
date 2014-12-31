@@ -57,7 +57,6 @@
 
 #include "debug.hpp"
 
-
 namespace utils {
 
   static void _vprint(const char *prefix, const char *fmt, 

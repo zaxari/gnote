@@ -34,12 +34,13 @@ extern const char *CHECK_INTERVAL;
 
 
 class RepoPreferences
-  : public Gtk::Grid
+  /* : public gnote::utils::HIGMessageDialog*/
 {
 public:
   RepoPreferences(gnote::NoteManager &);
 private:
   void on_interval_changed();
+  void on_name_entry_changed();
 
   Gtk::SpinButton m_check_interval;
 };

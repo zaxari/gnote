@@ -1320,6 +1320,8 @@ Gtk::Menu *SearchNotesWidget::get_note_list_context_menu()
 void SearchNotesWidget::new_note()
 {
   Note::Ptr note;
+  
+  printf("%s: %s: called\n", __FILE__, __func__);
   notebooks::Notebook::Ptr notebook = get_selected_notebook();
   if(!notebook || dynamic_pointer_cast<notebooks::SpecialNotebook>(notebook)) {
     // Just create a standard note (not in a notebook)

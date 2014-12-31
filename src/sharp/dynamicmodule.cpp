@@ -70,6 +70,7 @@ namespace sharp {
 
   void DynamicModule::add(const char * iface, IfaceFactoryBase* mod)
   {
+    printf("%s called\n", __func__);
     std::map<std::string, IfaceFactoryBase *>::iterator iter;
     iter = m_interfaces.find(iface);
     if(iter == m_interfaces.end()) {

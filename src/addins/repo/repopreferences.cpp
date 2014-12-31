@@ -20,8 +20,13 @@
 
 #include <glibmm/i18n.h>
 
+#include "iconmanager.hpp"
+#include "utils.hpp"
+
 #include "repopreferences.hpp"
 #include "preferences.hpp"
+
+using namespace gnote;
 
 namespace repo {
 
@@ -30,7 +35,8 @@ const char *CHECK_INTERVAL = "check-interval";
 
 
 RepoPreferences::RepoPreferences(gnote::NoteManager &)
-  : m_check_interval(1)
+  : /* utils::HIGMessageDialog(parent, f, Gtk::MESSAGE_OTHER, Gtk::BUTTONS_NONE), */
+    m_check_interval(1)
 {
   printf("\n>>>>>> %s called  \n", __func__);
   /* Gtk::Label *label = manage(new Gtk::Label(_("_Directory check interval:"), true));
@@ -43,7 +49,7 @@ RepoPreferences::RepoPreferences(gnote::NoteManager &)
     gnote::Preferences::obj().get_schema_settings(SCHEMA_NOTE_DIRECTORY_WATCHER)->get_int(CHECK_INTERVAL));
   attach(m_check_interval, 1, 0, 1, 1);*/
 
-      set_title(_("Create Notebook"));
+      // set_title(_("Create Notebook"));
       Gtk::Table *table = manage(new Gtk::Table (2, 2, false));
       table->set_col_spacings(6);
       
@@ -52,7 +58,7 @@ RepoPreferences::RepoPreferences(gnote::NoteManager &)
       label->show ();
       
       m_nameEntry.signal_changed().connect(
-        sigc::mem_fun(*this, &CreateNotebookDialog::on_name_entry_changed));
+        sigc::mem_fun(*this, &RepoPreferences::on_name_entry_changed));
       m_nameEntry.set_activates_default(true);
       m_nameEntry.show ();
       label->set_mnemonic_widget(m_nameEntry);
@@ -67,7 +73,7 @@ RepoPreferences::RepoPreferences(gnote::NoteManager &)
       table->attach (m_errorLabel, 1, 2, 1, 2);
       table->show ();
       
-      set_extra_widget(table);
+     // set_extra_widget(table);
       
       add_button (Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL, false);
       add_button (IconManager::obj().get_icon(IconManager::NOTEBOOK_NEW, 16),
@@ -87,6 +93,11 @@ void RepoPreferences::on_interval_changed()
 {
   gnote::Preferences::obj().get_schema_settings(SCHEMA_NOTE_DIRECTORY_WATCHER)->set_int(
     CHECK_INTERVAL, m_check_interval.get_value_as_int());
+}
+
+void RepoPreferences::on_name_entry_changed()
+{
+	printf(">>>> %s called\n", __func__);
 }
 
 }

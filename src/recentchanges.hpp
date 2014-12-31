@@ -36,6 +36,7 @@
 #include "searchnoteswidget.hpp"
 #include "utils.hpp"
 
+
 namespace gnote {
   class NoteManager;
 
@@ -103,6 +104,7 @@ private:
   Gtk::Grid           m_embed_box;
   Gtk::Button        *m_all_notes_button;
   Gtk::Button        *m_new_note_button;
+  Gtk::Button	     *m_new_repo_sync_button;
   Gtk::Button        *m_window_actions_button;
   Gtk::SearchEntry    m_search_entry;
   std::list<EmbeddableWidget*> m_embedded_widgets;

@@ -78,6 +78,7 @@ namespace gnote {
 
   void Tag::get_notes(std::list<NoteBase*> & l) const
   {
+    printf("%s: getting notes...\n", __func__);
     sharp::map_get_values(m_notes, l);
   }
 

@@ -68,6 +68,7 @@ AddinInfo::AddinInfo(const std::string & info_file)
 
 void AddinInfo::load_from_file(const std::string & info_file)
 {
+  printf("%s: called %s\n", __func__, info_file.c_str());
   try {
     Glib::KeyFile addin_info;
     if(!addin_info.load_from_file(info_file)) {

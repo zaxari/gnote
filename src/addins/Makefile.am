@@ -21,4 +21,5 @@ SUBDIRS = backlinks \
 	tomboyimport \
 	underline \
 	webdavsyncservice \
+	repo \
 	$(NULL)

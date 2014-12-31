@@ -100,6 +100,7 @@ namespace gnote {
 
     m_note_actions.push_back(action->get_name());
     get_window()->add_widget_action(action, order);
+    printf("%s: added note action %d\n", __func__, order);	
   }
 
   void NoteAddin::add_tool_item (Gtk::ToolItem *item, int position)
