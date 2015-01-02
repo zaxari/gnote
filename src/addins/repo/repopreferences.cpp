@@ -30,74 +30,48 @@ using namespace gnote;
 
 namespace repo {
 
-const char *SCHEMA_NOTE_DIRECTORY_WATCHER = "org.gnome.gnote.note-directory-watcher";
-const char *CHECK_INTERVAL = "check-interval";
+const char *SCHEMA_REPO_URL = "org.gnome.gnote.repo-url";
+const char *REPO_URL = "repo-url";
 
 
 RepoPreferences::RepoPreferences(gnote::NoteManager &)
-  : /* utils::HIGMessageDialog(parent, f, Gtk::MESSAGE_OTHER, Gtk::BUTTONS_NONE), */
-    m_check_interval(1)
+  : m_apply_button(_("_Apply"), true)
+  , m_label(_("Git Server URL:  "))
 {
-  printf("\n>>>>>> %s called  \n", __func__);
-  /* Gtk::Label *label = manage(new Gtk::Label(_("_Directory check interval:"), true));
-  attach(*label, 0, 0, 1, 1);
-  m_check_interval.set_range(5, 300);
-  m_check_interval.set_increments(1, 5);
-  m_check_interval.signal_value_changed()
-    .connect(sigc::mem_fun(*this, &RepoPreferences::on_interval_changed));
-  m_check_interval.set_value(
-    gnote::Preferences::obj().get_schema_settings(SCHEMA_NOTE_DIRECTORY_WATCHER)->get_int(CHECK_INTERVAL));
-  attach(m_check_interval, 1, 0, 1, 1);*/
-
-      // set_title(_("Create Notebook"));
-      Gtk::Table *table = manage(new Gtk::Table (2, 2, false));
-      table->set_col_spacings(6);
-      
-      Gtk::Label *label = manage(new Gtk::Label (_("N_otebook name:"), true));
-      label->property_xalign() = 0;
-      label->show ();
-      
-      m_nameEntry.signal_changed().connect(
+  printf("\n>>>>>> %s called  <<<<<<<\n", __func__);
+  set_row_spacing(12);
+  m_label.set_line_wrap(true);
+  m_label.set_use_markup(true);
+  m_label.set_vexpand(true);
+  attach(m_label, 0, 0, 1, 1);
+  
+  m_entry.set_hexpand(true);
+  m_entry.signal_changed().connect(
         sigc::mem_fun(*this, &RepoPreferences::on_name_entry_changed));
-      m_nameEntry.set_activates_default(true);
-      m_nameEntry.show ();
-      label->set_mnemonic_widget(m_nameEntry);
-      
-      m_errorLabel.property_xalign() = 0;
-      m_errorLabel.set_markup(
-        str(boost::format("<span foreground='red' style='italic'>%1%</span>")
-            % _("Name already taken")));
-      
-      table->attach (*label, 0, 1, 0, 1);
-      table->attach (m_nameEntry, 1, 2, 0, 1);
-      table->attach (m_errorLabel, 1, 2, 1, 2);
-      table->show ();
-      
-     // set_extra_widget(table);
-      
-      add_button (Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL, false);
-      add_button (IconManager::obj().get_icon(IconManager::NOTEBOOK_NEW, 16),
-                  // Translation note: This is the Create button in the Create
-                  // New Note Dialog.
-                  _("C_reate"), Gtk::RESPONSE_OK, true);
-      
-      // Only let the Ok response be sensitive when
-      // there's something in nameEntry
-      set_response_sensitive (Gtk::RESPONSE_OK, false);
-      m_errorLabel.hide ();
+  attach(m_entry, 1, 0, 2, 1);
 
+  m_apply_button.set_use_underline(true);
+  m_apply_button.signal_clicked().connect(
+      sigc::mem_fun(*this, &RepoPreferences::on_apply_button_clicked));
+  attach(m_apply_button, 2, 2, 1, 1);
+
+  m_url = gnote::Preferences::obj().get_schema_settings(SCHEMA_REPO_URL)->get_string(REPO_URL);
+  printf("%s: current url: %s \n", __func__, m_url.c_str() );
 
 }
 
-void RepoPreferences::on_interval_changed()
+void RepoPreferences::on_apply_button_clicked()
 {
-  gnote::Preferences::obj().get_schema_settings(SCHEMA_NOTE_DIRECTORY_WATCHER)->set_int(
-    CHECK_INTERVAL, m_check_interval.get_value_as_int());
+	printf(">>>> %s calledi %s\n", 
+			__func__,m_entry.get_text().c_str());
+
 }
 
 void RepoPreferences::on_name_entry_changed()
 {
 	printf(">>>> %s called\n", __func__);
+	m_url = m_entry.get_text();
+	gnote::Preferences::obj().get_schema_settings(SCHEMA_REPO_URL)->set_string(REPO_URL, m_url);
 }
 
 }

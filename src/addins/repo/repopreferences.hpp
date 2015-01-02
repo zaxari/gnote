@@ -29,20 +29,25 @@
 
 namespace repo {
 
-extern const char *SCHEMA_NOTE_DIRECTORY_WATCHER;
-extern const char *CHECK_INTERVAL;
+extern const char *SCHEMA_REPO_URL;
+extern const char *REPO_URL;
 
 
 class RepoPreferences
-  /* : public gnote::utils::HIGMessageDialog*/
+   : public Gtk::Grid
 {
 public:
   RepoPreferences(gnote::NoteManager &);
 private:
-  void on_interval_changed();
+  void on_apply_button_clicked();
   void on_name_entry_changed();
 
-  Gtk::SpinButton m_check_interval;
+  Gtk::Button m_apply_button;
+  Gtk::Label m_label;
+  Gtk::Entry m_entry;
+
+  Glib::ustring m_url;
+
 };
 
 }

@@ -35,6 +35,7 @@
 #include "sharp/streamwriter.hpp"
 #include "note.hpp"
 #include "noteaddin.hpp"
+#include "applicationaddin.hpp"
 
 
 
@@ -47,7 +48,7 @@ namespace repo {
 
 	DECLARE_MODULE(vcsModule);
 
-	class vcs : public gnote::NoteAddin {
+	class vcs : public gnote::ApplicationAddin {
 	public:
 		static vcs* create() {
 			return new vcs;
@@ -56,11 +57,16 @@ namespace repo {
 		virtual ~vcs();
 		virtual void initialize() override;
 		virtual void shutdown() override;
-		virtual void on_note_opened() override;
 		virtual int print_notes();
+	        virtual bool initialized() override;
 	private:
-		virtual int do_sync();
 		void export_button_clicked();
+		void on_sync_to_repo();		
+	
+		bool m_initialized;
+		
+		Glib::RefPtr<Gtk::Action> m_action;
+		Glib::ustring m_url;
 	};
 }
 

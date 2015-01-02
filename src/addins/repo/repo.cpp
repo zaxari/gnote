@@ -27,7 +27,7 @@
 #include "notewindow.hpp"
 #include "sharp/string.hpp"
 #include "repopreferencesfactory.hpp"
-
+#include "repopreferences.hpp"
 
 #include <boost/format.hpp>
 #include "repo.hpp"
@@ -41,7 +41,7 @@ vcsModule::vcsModule()
 	ADD_INTERFACE_IMPL(RepoPreferencesFactory);
 }
 
-vcs::vcs()
+vcs::vcs() : m_initialized(false)
 {
 	printf("%s: called\n", __func__);
 }
@@ -58,42 +58,43 @@ int vcs::print_notes()
 	return 0;
 }
 
-int vcs::do_sync()
-{
-	printf("%s: called\n", __func__);
-
-	return 0;
-}
-
 void vcs::initialize()
 {
-	printf(">>>>>> %s called\n", __func__);
-	return;
+	if (m_initialized)
+		return;
+
+	Glib::RefPtr<Gio::Settings> settings = 
+		gnote::Preferences::obj().get_schema_settings(SCHEMA_REPO_URL);
+  	m_url = settings->get_string(REPO_URL);
+	printf(">>>>>> %s called repo url: %s\n", __func__, m_url.c_str());
+	m_initialized = true;
+	
+	if (m_action == 0) {
+      		m_action = Gtk::Action::create();
+	      	m_action->set_name("SyncRepository");
+		m_action->set_label(_("Sync to repo"));
+         	m_action->signal_activate().connect(
+			sigc::mem_fun(*this, &vcs::on_sync_to_repo));
+	        gnote::IActionManager::obj().
+			add_main_window_search_action(m_action, 150);
+	}
 }
 
 void vcs::shutdown()
 {
 	printf(">>>> %s called\n", __func__);
+ 	m_initialized = false;	
 	return;
 }
 
-void vcs::on_note_opened()
+bool vcs::initialized()
 {
-	printf(">>>> %s called\n", __func__);
-	Glib::RefPtr<gnote::NoteWindow::NonModifyingAction> action =
-	gnote::NoteWindow::NonModifyingAction::create("PushNoteAction", _("Push note"),	_("Push note to repo"));
-	printf("<<<< DONE\n"); 
-	action->signal_activate().connect(
-		sigc::mem_fun(*this, &vcs::export_button_clicked));
-	add_note_action(action, gnote::PUSH_TO_REPO_ORDER);
-
-	printf("pushed\n");
+	return m_initialized;
 }
 
-void vcs::export_button_clicked()
+void vcs::on_sync_to_repo()
 {
-	printf("%s: called\n", __func__);
-	return;
+	printf("%s: called \n", __func__);
 }
 
 }
