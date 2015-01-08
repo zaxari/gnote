@@ -12,7 +12,9 @@ addins_DATA = $(desktop_files)
 
 repo_la_SOURCES = repo.hpp repo.cpp \
 		  repopreferencesfactory.hpp repopreferences.hpp \
-		  repopreferences.cpp $(NULL)
+		  repopreferences.cpp gitcli.hpp gitcli.cpp $(NULL)
 
 EXTRA_DIST = $(desktop_in_files)
 DISTCLEANFILES = $(desktop_files)
+
+repo_la_LIBADD = -lgit2

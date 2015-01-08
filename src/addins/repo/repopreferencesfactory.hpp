@@ -17,7 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef _REPO_PREFERENCES_FACTORY_
 #define _REPO_PREFERENCES_FACTORY_
 
@@ -26,11 +25,9 @@
 
 namespace repo {
 
-class RepoPreferencesFactory
-  : public gnote::AddinPreferenceFactory<RepoPreferences>
-{};
+	class RepoPreferencesFactory:public gnote::AddinPreferenceFactory <
+	    RepoPreferences > {
+	};
 
 }
-
 #endif
-

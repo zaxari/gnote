@@ -93,6 +93,7 @@ Glib::ustring NoteManagerBase::sanitize_xml_content(const Glib::ustring & xml_co
 NoteManagerBase::NoteManagerBase(const Glib::ustring & directory)
   : m_notes_dir(directory)
 {
+	printf("\n notes dir: %s \n", directory.c_str());
 }
 
 NoteManagerBase::~NoteManagerBase()
@@ -185,6 +186,7 @@ NoteBase::List NoteManagerBase::get_notes_linking_to(const Glib::ustring & title
 
 void NoteManagerBase::add_note(const NoteBase::Ptr & note)
 {
+  printf(">>>>>>>>>> %s called\n", __func__);
   if(note) {
     note->signal_renamed.connect(sigc::mem_fun(*this, &NoteManagerBase::on_note_rename));
     note->signal_saved.connect(sigc::mem_fun(*this, &NoteManagerBase::on_note_save));

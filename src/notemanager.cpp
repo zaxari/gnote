@@ -64,6 +64,7 @@ namespace gnote {
     m_addin_mgr = create_addin_manager ();
 
     if (is_first_run) {
+      printf(">>>> STEP 1\n");
       std::list<ImportAddin*> l;
       m_addin_mgr->get_import_addins(l);
       bool has_imported = false;
@@ -94,6 +95,7 @@ namespace gnote {
       create_start_notes ();
     } 
     else {
+      printf(">>>> STEP 2\n");
       load_notes ();
     }
 
@@ -181,6 +183,7 @@ namespace gnote {
 
   void NoteManager::load_notes()
   {
+    printf("----> loading notes from %s\n", notes_dir().c_str());
     std::list<std::string> files;
     sharp::directory_get_files_with_ext(notes_dir(), ".note", files);
 

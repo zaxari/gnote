@@ -25,13 +25,15 @@
 
 #include "iactionmanager.hpp"
 #include "notewindow.hpp"
+#include "notemanager.hpp"
 #include "sharp/string.hpp"
 #include "repopreferencesfactory.hpp"
 #include "repopreferences.hpp"
+#include "sharp/directory.hpp"
+#include "sharp/dynamicmodule.hpp"
 
 #include <boost/format.hpp>
 #include "repo.hpp"
-
 
 namespace repo {
 
@@ -41,7 +43,7 @@ vcsModule::vcsModule()
 	ADD_INTERFACE_IMPL(RepoPreferencesFactory);
 }
 
-vcs::vcs() : m_initialized(false)
+vcs::vcs():m_initialized(false)
 {
 	printf("%s: called\n", __func__);
 }
@@ -49,7 +51,7 @@ vcs::vcs() : m_initialized(false)
 vcs::~vcs()
 {
 	printf("%s: called\n", __func__);
-	
+
 }
 
 int vcs::print_notes()
@@ -63,27 +65,27 @@ void vcs::initialize()
 	if (m_initialized)
 		return;
 
-	Glib::RefPtr<Gio::Settings> settings = 
-		gnote::Preferences::obj().get_schema_settings(SCHEMA_REPO_URL);
-  	m_url = settings->get_string(REPO_URL);
-	printf(">>>>>> %s called repo url: %s\n", __func__, m_url.c_str());
+	Glib::RefPtr < Gio::Settings > settings =
+	    gnote::Preferences::obj().
+	    get_schema_settings(SCHEMA_REPO_URL);
+	m_url = settings->get_string(REPO_URL);
 	m_initialized = true;
-	
+
 	if (m_action == 0) {
-      		m_action = Gtk::Action::create();
-	      	m_action->set_name("SyncRepository");
+		m_action = Gtk::Action::create();
+		m_action->set_name("SyncRepository");
 		m_action->set_label(_("Sync to repo"));
-         	m_action->signal_activate().connect(
-			sigc::mem_fun(*this, &vcs::on_sync_to_repo));
-	        gnote::IActionManager::obj().
-			add_main_window_search_action(m_action, 150);
+		m_action->signal_activate().
+		    connect(sigc::
+			    mem_fun(*this, &vcs::on_sync_to_repo));
+		gnote::IActionManager::
+		obj().add_main_window_search_action(m_action, 150);
 	}
 }
 
 void vcs::shutdown()
 {
-	printf(">>>> %s called\n", __func__);
- 	m_initialized = false;	
+	m_initialized = false;
 	return;
 }
 
@@ -94,8 +96,18 @@ bool vcs::initialized()
 
 void vcs::on_sync_to_repo()
 {
-	printf("%s: called \n", __func__);
+	gnote::NoteManager & manager(note_manager());
+	const Glib::ustring & note_path = manager.notes_dir();
+
+	/* get ref. to the git client */
+	shared_ptr<gitcli> gc(new gitcli(note_path, m_url));
+	m_git = gc;
+
+	std::list < std::string > files;
+	sharp::directory_get_files_with_ext(manager.notes_dir(),
+					    ".note", files);
+
+	m_git->sync(files);
 }
 
 }
-

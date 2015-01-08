@@ -17,7 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef _REPO_PREFERENCES_
 #define _REPO_PREFERENCES_
 
@@ -26,31 +25,25 @@
 
 #include "notemanager.hpp"
 
-
 namespace repo {
 
-extern const char *SCHEMA_REPO_URL;
-extern const char *REPO_URL;
+	extern const char *SCHEMA_REPO_URL;
+	extern const char *REPO_URL;
 
-
-class RepoPreferences
-   : public Gtk::Grid
-{
+	class RepoPreferences:public Gtk::Grid {
 public:
-  RepoPreferences(gnote::NoteManager &);
+		RepoPreferences(gnote::NoteManager &);
 private:
-  void on_apply_button_clicked();
-  void on_name_entry_changed();
+		void on_apply_button_clicked();
+		void on_name_entry_changed();
 
-  Gtk::Button m_apply_button;
-  Gtk::Label m_label;
-  Gtk::Entry m_entry;
+		 Gtk::Button m_apply_button;
+		 Gtk::Label m_label;
+		 Gtk::Entry m_entry;
 
-  Glib::ustring m_url;
+		 Glib::ustring m_url;
 
-};
+	};
 
 }
-
 #endif
-

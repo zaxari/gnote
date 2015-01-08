@@ -18,55 +18,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __REPO_HPP__
-#define __REPO_HPP__
+#ifndef __GITCLI_HPP__
+#define __GITCLI_HPP__
 
 #include <list>
 #include <string>
 #include <queue>
 #include <set>
 
-#include <sigc++/sigc++.h>
-
-#include <gtkmm/imagemenuitem.h>
-
-#include "base/macros.hpp"
-#include "sharp/dynamicmodule.hpp"
-#include "sharp/streamwriter.hpp"
-#include "note.hpp"
-#include "noteaddin.hpp"
-#include "applicationaddin.hpp"
-#include "gitcli.hpp"
+#include <git2.h>
 
 namespace repo {
 
-	class vcsModule:public sharp::DynamicModule {
+	class gitcli {
 public:
-		vcsModule();
-	};
+		gitcli(const std::string &dir, const std::string &url);
+		virtual ~gitcli();
 
-	 DECLARE_MODULE(vcsModule);
-
-	class vcs:public gnote::ApplicationAddin {
-public:
-		static vcs *create() {
-			return new vcs;
-		}
-		vcs();
-		virtual ~vcs();
-		virtual void initialize() override;
-		virtual void shutdown() override;
-		virtual int print_notes();
-		virtual bool initialized() override;
+		virtual int sync(const std::list<std::string> files);
 private:
-		void export_button_clicked();
-		void on_sync_to_repo();
+		virtual int init();
+		virtual int add(const std::list<std::string> files, 
+				git_oid *tree_id);
 
-		bool m_initialized;
+		virtual int commit(git_oid *tree_id);
+		virtual int push();
 
-		Glib::RefPtr < Gtk::Action > m_action;
-		Glib::ustring m_url;
-		shared_ptr<gitcli> m_git;
+		/* base on libgit2 examples check_lg2 function */
+		virtual void print_lg2err(int error, const std::string msg);
+
+		virtual int do_initial_commit(git_tree *tree, 
+					      git_signature *sig);
+		virtual int do_commit(git_tree *tree, git_signature *sig, 
+				      git_commit *old_head);
+
+		virtual int init_repo();
+
+		std::string m_dir;
+		std::string m_url;
+		bool m_repo_inited;
+	
+		/* libgit vars */
+		git_repository *m_repo;
 	};
 }
 
