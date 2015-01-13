@@ -16,5 +16,9 @@ repo_la_SOURCES = repo.hpp repo.cpp \
 
 EXTRA_DIST = $(desktop_in_files)
 DISTCLEANFILES = $(desktop_files)
+AM_CPPFLAGS = @libgit2_CFLAGS@
+AM_CXXFLAGS = @libgit2_CFLAGS@
+AM_CFLAGS = @libgit2_CFLAGS@
 
-repo_la_LIBADD = -lgit2
+
+repo_la_LIBADD = @libgit2_LIBS@ -lgit2

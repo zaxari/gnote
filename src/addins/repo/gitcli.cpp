@@ -35,8 +35,7 @@ namespace repo {
 gitcli::gitcli(const std::string &dir, const std::string &url) :
 	m_dir(dir), m_url(url)
 {
-	/* this depends on libgit version */
-	git_threads_init();
+	git_libgit2_init();
 }
 
 gitcli::~gitcli()
@@ -44,8 +43,7 @@ gitcli::~gitcli()
 	if (m_repo)
 		git_repository_free(m_repo);
 
-	/* this depends on libgit version */
-	git_threads_shutdown();
+	git_libgit2_shutdown();
 }
 int gitcli::sync(const std::list<std::string> files)
 {
@@ -186,6 +184,288 @@ int gitcli::commit(git_oid *tree_id)
 int gitcli::push()
 {
 	return 0;
+}
+
+int gitcli::clone()
+{
+	git_clone_options opts;
+	int ret;
+
+	DBG_OUT("Cloning %s\n", m_url.c_str());
+	ret = git_clone(&m_repo, m_url.c_str(), m_dir.c_str(), &opts);
+	if (ret)
+		print_lg2err(ret,"Unable to clone");
+	else
+		git_repository_free(m_repo);
+
+	return ret;
+}
+
+int gitcli::status()
+{
+
+	return 0;
+}
+
+int gitcli::get_remote(git_remote **remote)
+{
+	int ret;
+
+	ret = git_remote_lookup(remote, m_repo, "origin");
+	if (!ret) {
+		DBG_OUT("remote found\n");
+		return 0;
+	}
+
+	DBG_OUT("creating anonymous remote");
+	ret = git_remote_create(remote, m_repo, "origin", m_url.c_str());
+	if (ret)
+		print_lg2err(ret, "Unable to create remote");
+
+	printf("remote @ %p\n", *remote);
+
+	return ret;
+}
+
+int gitcli::fetch(git_remote *remote)
+{
+	int ret;
+
+	ret = git_remote_connect(remote, GIT_DIRECTION_FETCH);
+	if (ret) {
+		print_lg2err(ret, "remote connect failed");
+		return -1;
+	}
+
+	ret = git_remote_download(remote, NULL);
+	if (ret)
+		print_lg2err(ret, "remote download failed");
+
+	git_remote_disconnect(remote);
+	
+	return 0;
+}
+
+int gitcli::do_commit_merge(git_tree *tree, git_signature *sig, git_buf msg)
+{
+	git_oid commit_id;
+	git_commit *parents[2];
+	int ret;
+
+	ret = git_commit_lookup(&parents[0], m_repo,
+				git_reference_target(m_branch));
+	if (ret) {
+		print_lg2err(ret, "failed to lookup current branch paraent");
+		return -1;
+	}
+	ret = git_commit_lookup(&parents[1], m_repo,
+				git_reference_target(m_upstream));
+	if (ret) {
+		print_lg2err(ret, "failed to lookup current branch paraent");
+		return -1;
+	}
+
+	ret = git_commit_create(&commit_id, m_repo, "HEAD", sig, sig,
+				NULL, msg.ptr, tree, 2,
+				(const git_commit **) parents);
+
+	if (ret) {
+		print_lg2err(ret, "failed to create commit");
+	} else
+		git_repository_state_cleanup(m_repo);
+
+	return ret;
+}
+
+int gitcli::finalize_merge()
+{
+	git_index *index;
+	git_tree *tree;
+	git_oid tree_id;
+	git_signature *user;
+	git_buf msg = {0};
+	int ret;
+
+	ret = git_repository_index(&index, m_repo);
+	if (ret) {
+		print_lg2err(ret,"get index failed");
+		return -1;
+	}
+
+	ret = git_index_write_tree(&tree_id, index);
+
+	git_index_free(index);
+
+	if (ret = git_signature_default(&user, m_repo)) {
+		print_lg2err(ret,"failed to get user signature");
+		return -1;
+	}
+
+	if (ret = git_repository_message(&msg, m_repo)) {
+		print_lg2err(ret, "failed to get repository message");
+		return -1;
+	}
+
+	ret = git_tree_lookup(&tree, m_repo, &tree_id);
+	if (!ret)
+		ret = do_commit_merge(tree, user, msg);
+	else
+		print_lg2err(ret, "fail to lookup tree");
+
+	git_signature_free(user);
+	git_tree_free(tree);
+
+	return ret;
+}
+
+int gitcli::get_conflicts()
+{
+	git_index *index;
+	int ret;
+
+	ret = git_repository_index(&index, m_repo);
+	if (ret) {
+		print_lg2err(ret, "get index failed");
+		return -1;
+	}
+
+	ret = git_index_has_conflicts(index);
+
+	git_index_free(index);
+
+	return ret;
+}
+
+int gitcli::merge()
+{
+	int ret;
+	git_annotated_commit *merge_heads[1];
+	m_branch = m_upstream = NULL;
+
+	ret = git_repository_head(&m_branch, m_repo);
+	if (ret) {
+		print_lg2err(ret, "failed to lookup current branch");
+		return -1;
+	}
+	DBG_OUT("branch: %s\n", git_reference_name(m_branch));
+
+	ret = git_branch_upstream(&m_upstream, m_branch);
+	if (ret) {
+		print_lg2err(ret, "failed to get upstream branch");
+		git_reference_free(m_branch);
+		return -1;
+	}
+	DBG_OUT("upstream branch: %s\n", git_reference_name(m_upstream));
+
+	ret = git_annotated_commit_from_ref(&merge_heads[0], m_repo, m_upstream);
+	if (ret) {
+		print_lg2err(ret, "failed to create merge head");
+		git_reference_free(m_upstream);
+		git_reference_free(m_branch);
+		return -1;
+	}
+	ret = git_merge(m_repo, (const git_annotated_commit **) merge_heads,
+			1, NULL, NULL);
+	if (ret)
+		print_lg2err(ret, "failed to merge");
+
+	/* check for conflicts and finalize merge -> commit*/
+	if (!get_conflicts())
+		ret = finalize_merge();
+
+	git_annotated_commit_free(merge_heads[0]);
+	git_reference_free(m_upstream);
+	git_reference_free(m_branch);
+
+
+	return ret;
+}
+
+int gitcli::get_repo()
+{
+	if (git_repository_open(&m_repo, m_dir.c_str()))
+		return 0;
+
+	return 1;
+}
+
+int gitcli::progress_cb(const char *str, int len, void *data)
+{
+	return 0;
+}
+
+int gitcli::update_cb(const char *refname, const git_oid *a,
+		const git_oid *b, void *data)
+{
+	char a_str[GIT_OID_HEXSZ+1], b_str[GIT_OID_HEXSZ+1];
+	(void)data;
+
+	git_oid_fmt(b_str, b);
+	b_str[GIT_OID_HEXSZ] = '\0';
+
+	if (git_oid_iszero(a)) {
+		printf("[new]     %.20s %s\n", b_str, refname);
+	} else {
+		git_oid_fmt(a_str, a);
+		a_str[GIT_OID_HEXSZ] = '\0';
+		printf("[updated] %.10s..%.10s %s\n", a_str, b_str, refname);
+	}
+
+	return 0;
+}
+
+int gitcli::cred_acquire_cb(git_cred **out,
+			const char * UNUSED(url),
+			const char * UNUSED(username_from_url),
+			unsigned int UNUSED(allowed_types),
+			void * UNUSED(payload))
+{
+	printf("Getting credentials...\n");
+	return git_cred_ssh_key_from_agent(out, "zax");
+}
+
+
+int gitcli::update()
+{
+	int ret = 0;
+	/* check if repository is there and if not init new one */
+	if (!get_repo()) {
+		DBG_OUT("initializing notes reposiotry");
+		init_repo();
+	}
+
+	git_remote *remote = NULL;
+	if (get_remote(&remote))
+		return -1;
+
+	printf("remote %p\n", remote);
+
+	git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
+
+	callbacks.update_tips = &repo::gitcli::update_cb;
+	callbacks.sideband_progress = &repo::gitcli::progress_cb;
+	callbacks.credentials = &repo::gitcli::cred_acquire_cb;
+	git_remote_set_callbacks(remote, &callbacks);
+
+	git_transfer_progress *stats;
+
+	stats = (git_transfer_progress *)git_remote_stats(remote);
+
+	ret = fetch(remote);
+	if (!ret) {
+		ret = git_remote_update_tips(remote, NULL, NULL);
+		if (ret)
+			print_lg2err(ret, "remote update tips failed");
+	}
+
+	if (!ret) {
+		DBG_OUT("remote fetched");
+		merge();
+	}
+	
+	git_remote_free(remote);
+
+	return ret;
 }
 
 void gitcli::print_lg2err(int error, const std::string msg)

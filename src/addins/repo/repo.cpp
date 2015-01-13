@@ -43,9 +43,9 @@ vcsModule::vcsModule()
 	ADD_INTERFACE_IMPL(RepoPreferencesFactory);
 }
 
-vcs::vcs():m_initialized(false)
+vcs::vcs(): m_initialized(false)
 {
-	printf("%s: called\n", __func__);
+
 }
 
 vcs::~vcs()
@@ -70,6 +70,15 @@ void vcs::initialize()
 	    get_schema_settings(SCHEMA_REPO_URL);
 	m_url = settings->get_string(REPO_URL);
 	m_initialized = true;
+
+	gnote::NoteManager &manager(note_manager());
+	const Glib::ustring &note_path = manager.notes_dir();
+
+	/* get ref. to the git client */
+	shared_ptr<gitcli> gc(new gitcli(note_path, m_url));
+	m_git = gc;
+
+	m_git->update();
 
 	if (m_action == 0) {
 		m_action = Gtk::Action::create();
@@ -96,12 +105,8 @@ bool vcs::initialized()
 
 void vcs::on_sync_to_repo()
 {
-	gnote::NoteManager & manager(note_manager());
-	const Glib::ustring & note_path = manager.notes_dir();
-
-	/* get ref. to the git client */
-	shared_ptr<gitcli> gc(new gitcli(note_path, m_url));
-	m_git = gc;
+	gnote::NoteManager &manager(note_manager());
+	const Glib::ustring &note_path = manager.notes_dir();
 
 	std::list < std::string > files;
 	sharp::directory_get_files_with_ext(manager.notes_dir(),

@@ -67,6 +67,7 @@ private:
 		Glib::RefPtr < Gtk::Action > m_action;
 		Glib::ustring m_url;
 		shared_ptr<gitcli> m_git;
+	
 	};
 }
 
