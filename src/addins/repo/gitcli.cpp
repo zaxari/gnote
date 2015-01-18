@@ -336,6 +336,29 @@ int gitcli::get_conflicts()
 	return ret;
 }
 
+int gitcli::analyze_merge(const git_annotated_commit **merge_heads, size_t len)
+{
+	git_merge_analysis_t merge_analysis;
+	git_merge_preference_t merge_pref = GIT_MERGE_PREFERENCE_NONE;
+	int ret;
+
+	ret = git_merge_analysis(&merge_analysis, &merge_pref, m_repo,
+				merge_heads, len);
+	if (ret) {
+		print_lg2err(ret, "merge analysis failed!");
+		return 0;
+	}
+
+	ret = 1;
+	if (merge_analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE) {
+		printf("notes up-to-date no need to merge (%d)\n",
+			(int)merge_analysis);
+		ret = 0;
+	}
+
+	return ret;
+}
+
 int gitcli::merge()
 {
 	int ret;
@@ -364,19 +387,22 @@ int gitcli::merge()
 		git_reference_free(m_branch);
 		return -1;
 	}
-	ret = git_merge(m_repo, (const git_annotated_commit **) merge_heads,
-			1, NULL, NULL);
-	if (ret)
-		print_lg2err(ret, "failed to merge");
 
-	/* check for conflicts and finalize merge -> commit*/
-	if (!get_conflicts())
-		ret = finalize_merge();
+	if (analyze_merge((const git_annotated_commit **)merge_heads, 1)) {
+		ret = git_merge(m_repo,
+			        (const git_annotated_commit **) merge_heads,
+				1, NULL, NULL);
+		if (ret)
+			print_lg2err(ret, "failed to merge");
+
+		/* check for conflicts and finalize merge -> commit*/
+		if (!get_conflicts())
+			ret = finalize_merge();
+	}
 
 	git_annotated_commit_free(merge_heads[0]);
 	git_reference_free(m_upstream);
 	git_reference_free(m_branch);
-
 
 	return ret;
 }
@@ -391,25 +417,20 @@ int gitcli::get_repo()
 
 int gitcli::progress_cb(const char *str, int len, void *data)
 {
+	(void) str;
+	(void) len;
+	(void) data;
+
 	return 0;
 }
 
 int gitcli::update_cb(const char *refname, const git_oid *a,
 		const git_oid *b, void *data)
 {
-	char a_str[GIT_OID_HEXSZ+1], b_str[GIT_OID_HEXSZ+1];
 	(void)data;
-
-	git_oid_fmt(b_str, b);
-	b_str[GIT_OID_HEXSZ] = '\0';
-
-	if (git_oid_iszero(a)) {
-		printf("[new]     %.20s %s\n", b_str, refname);
-	} else {
-		git_oid_fmt(a_str, a);
-		a_str[GIT_OID_HEXSZ] = '\0';
-		printf("[updated] %.10s..%.10s %s\n", a_str, b_str, refname);
-	}
+	(void)a;
+	(void)b;
+	(void)refname;
 
 	return 0;
 }

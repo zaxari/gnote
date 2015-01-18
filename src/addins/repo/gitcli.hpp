@@ -62,6 +62,9 @@ private:
 		virtual int get_remote(git_remote **remote);
 		virtual int fetch(git_remote *remote);
 		virtual int push();
+		virtual int analyze_merge(
+				const git_annotated_commit **merge_heads,
+				size_t len);
 		virtual int merge();
 		virtual int do_commit_merge(git_tree *tree, 
 					    git_signature *sig, 
