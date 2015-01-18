@@ -59,6 +59,7 @@ private:
 		virtual int commit(git_oid *tree_id);
 		
 		virtual int clone();
+		virtual void set_remote_callbacks(git_remote *remote);
 		virtual int get_remote(git_remote **remote);
 		virtual int fetch(git_remote *remote);
 		virtual int push();

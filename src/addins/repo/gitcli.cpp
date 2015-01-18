@@ -55,6 +55,9 @@ int gitcli::sync(const std::list<std::string> files)
 
 	commit(&tree_id);
 
+	push();
+
+	printf("sync finished\n");
 	return 0;
 }
 
@@ -181,11 +184,6 @@ int gitcli::commit(git_oid *tree_id)
 	return 0;
 }
 
-int gitcli::push()
-{
-	return 0;
-}
-
 int gitcli::clone()
 {
 	git_clone_options opts;
@@ -207,6 +205,16 @@ int gitcli::status()
 	return 0;
 }
 
+void gitcli::set_remote_callbacks(git_remote *remote)
+{
+	git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
+
+	callbacks.update_tips = &repo::gitcli::update_cb;
+	callbacks.sideband_progress = &repo::gitcli::progress_cb;
+	callbacks.credentials = &repo::gitcli::cred_acquire_cb;
+	git_remote_set_callbacks(remote, &callbacks);
+}
+
 int gitcli::get_remote(git_remote **remote)
 {
 	int ret;
@@ -214,6 +222,7 @@ int gitcli::get_remote(git_remote **remote)
 	ret = git_remote_lookup(remote, m_repo, "origin");
 	if (!ret) {
 		DBG_OUT("remote found\n");
+		set_remote_callbacks(*remote);
 		return 0;
 	}
 
@@ -221,9 +230,10 @@ int gitcli::get_remote(git_remote **remote)
 	ret = git_remote_create(remote, m_repo, "origin", m_url.c_str());
 	if (ret)
 		print_lg2err(ret, "Unable to create remote");
-
-	printf("remote @ %p\n", *remote);
-
+	else {
+		printf("remote @ %p\n", *remote);
+		set_remote_callbacks(*remote);
+	}
 	return ret;
 }
 
@@ -461,15 +471,7 @@ int gitcli::update()
 
 	printf("remote %p\n", remote);
 
-	git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
-
-	callbacks.update_tips = &repo::gitcli::update_cb;
-	callbacks.sideband_progress = &repo::gitcli::progress_cb;
-	callbacks.credentials = &repo::gitcli::cred_acquire_cb;
-	git_remote_set_callbacks(remote, &callbacks);
-
 	git_transfer_progress *stats;
-
 	stats = (git_transfer_progress *)git_remote_stats(remote);
 
 	ret = fetch(remote);
@@ -481,10 +483,50 @@ int gitcli::update()
 
 	if (!ret) {
 		DBG_OUT("remote fetched");
+		/* merge remote ref. here */
 		merge();
 	}
-	
+
 	git_remote_free(remote);
+
+	return ret;
+}
+
+int gitcli::push()
+{
+	int ret = 0;
+	git_strarray specs;
+	char *ref = "refs/heads/master:refs/heads/master";
+	git_push_options opts = GIT_PUSH_OPTIONS_INIT;
+
+	printf("%s: called\n", __func__);
+	specs.count = 1;
+	specs.strings = new char * [1];
+	if (!specs.strings)
+		return -1;
+
+	specs.strings[0] = ref;
+
+	git_remote *remote = NULL;
+	if (get_remote(&remote))
+		return -1;
+
+	printf("remote @ %p\n", remote);
+
+	/* remote is already fetched */
+	git_signature *sig;
+	if (git_signature_default(&sig, m_repo))
+		print_lg2err(ret, "Unable to create signature");
+
+
+	opts.pb_parallelism = 0;
+
+	ret = git_remote_push(remote, &specs, &opts, sig, "update notes");
+
+	delete [] specs.strings;
+	git_signature_free(sig);
+
+	printf("%s: pushed %d\n", __func__, ret);
 
 	return ret;
 }
