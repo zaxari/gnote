@@ -47,10 +47,16 @@ gitcli::~gitcli()
 }
 int gitcli::sync(const std::list<std::string> files)
 {
-	/* reinitialization of git repo should do no harm */
-	init();
-
 	git_oid tree_id;
+	int ret;
+
+	ret = repo_status();
+	if (!ret)
+		return 0;
+
+	if (ret < 0)
+		return -1;
+
 	add(files, &tree_id);
 
 	commit(&tree_id);
@@ -69,19 +75,6 @@ int gitcli::init_repo()
 	if (ret)
 		print_lg2err(ret, "Could not initialize repository");
 
-	return ret;
-}
-
-int gitcli::init()
-{
-	int ret;
-
-	/* TODO: check if repo inited and open instead of initialising it */
-	ret = git_repository_open_ext(&m_repo, m_dir.c_str(), 0, NULL);
-	if (ret)
-		return init_repo();
-
-	DBG_OUT("Repository found\n");
 	return ret;
 }
 
@@ -199,10 +192,29 @@ int gitcli::clone()
 	return ret;
 }
 
-int gitcli::status()
+int gitcli::repo_status()
 {
+	git_status_list *status;
+	git_status_options opt = GIT_STATUS_OPTIONS_INIT;
+	int ret;
 
-	return 0;
+	opt.show  = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
+	opt.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
+		GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX |
+		GIT_STATUS_OPT_SORT_CASE_SENSITIVELY;
+
+	ret = git_status_list_new(&status, m_repo, &opt);
+	if (ret) {
+		print_lg2err(ret, "get status failed.");
+		return -1;
+	}
+
+	ret = git_status_list_entrycount(status);
+	printf("changed files: %d\n", ret);
+
+	git_status_list_free(status);
+
+	return ret;
 }
 
 void gitcli::set_remote_callbacks(git_remote *remote)

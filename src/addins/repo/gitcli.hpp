@@ -51,7 +51,6 @@ public:
 		virtual int sync(const std::list<std::string> files);
 		virtual int update();
 private:
-		virtual int init();
 		virtual int add(const std::list<std::string> files, 
 				git_oid *tree_id);
 
@@ -73,7 +72,7 @@ private:
 
 		virtual int finalize_merge();
 		virtual int get_conflicts();
-		virtual int status();
+		virtual int repo_status();
 
 		/* base on libgit2 examples check_lg2 function */
 		virtual void print_lg2err(int error, const std::string msg);
